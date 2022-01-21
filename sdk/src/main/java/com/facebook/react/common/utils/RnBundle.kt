@@ -10,7 +10,9 @@ open class RnBundle : Serializable {
   var scriptPath: String? = null
   var scriptType: ScriptType? = null
   var scriptUrl: String? = null
+  var moduleName: String = ""
   var md5: String = ""
+
   constructor()
   constructor(scriptPath: String?, scriptType: ScriptType?, scriptUrl: String?, md5: String) {
     this.scriptPath = scriptPath
@@ -18,7 +20,6 @@ open class RnBundle : Serializable {
     this.scriptUrl = scriptUrl
     this.md5 = md5
   }
-
 
 
   override fun toString(): String {

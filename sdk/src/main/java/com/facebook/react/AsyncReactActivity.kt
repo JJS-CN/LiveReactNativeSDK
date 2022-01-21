@@ -44,11 +44,10 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   private var mDelegate: ReactActivityDelegate? = null
   protected var bundleLoaded = false
   private var bundle: RnBundle? = null
-  private var mainComponentName: String? = null
+
   companion object {
-    const val INTENT_KEY_COMPONENT_NAME = "INTENT_KEY_COMPONENT_NAME"
     const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
-    private var mReactNativeHost: ReactNativeHost? = null;
+    private var mReactNativeHost: ReactNativeHost? = null
   }
 
   /* public static void start(Context context, String componentName, RnBundle rnBundle) {
@@ -73,10 +72,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
           || bundle!!.scriptType === ScriptType.NETWORK_ASSET)
     ) {
       null
-    } else mainComponentName
+    } else bundle!!.moduleName
 
   protected fun reload(componentName: String?, rnBundle: RnBundle?) {
-    mainComponentName = componentName
     bundle = rnBundle
     mDelegate = createReactActivityDelegate()
     loadScript(object : LoadScriptListener {
@@ -137,7 +135,6 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     if(serializable != null) {
       bundle = serializable as RnBundle?
     }
-    mainComponentName = intent.getStringExtra(INTENT_KEY_COMPONENT_NAME)
     mDelegate = createReactActivityDelegate()
     val manager = mDelegate!!.reactNativeHost.reactInstanceManager
     if(!manager.hasStartedCreatingInitialContext()
@@ -204,6 +201,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     }
     val pathType = bundle!!.scriptType
     var scriptPath = bundle.scriptUrl
+    var moduleName = bundle.moduleName
     val instance = getCatalystInstance(reactNativeHost)
     if(pathType === ScriptType.ASSET) {
       loadScriptFromAsset(applicationContext, instance, scriptPath!!, false)
@@ -222,7 +220,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       downloadRNBundle(
         this.applicationContext,
         scriptPath,
-        mainComponentName,
+        moduleName,
         object : UpdateProgressListener {
           override fun updateProgressChange(precent: Int) {
             runOnUiThread { updateDownloadProgerss(precent) }
