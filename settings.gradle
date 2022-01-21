@@ -1,0 +1,30 @@
+rootProject.name = "LiveReactNativeSDK"
+include ':app'
+include ':sdk'
+include ':ReactNative_aar'
+include ':jsc_aar'
+//rn 设备信息
+include ':react-native-device-info'
+project(':react-native-device-info').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-device-info/android')
+//rn 手势信息
+include ':react-native-gesture-handler'
+project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-gesture-handler/android')
+//rn 动画库
+include ':react-native-reanimated'
+project(':react-native-reanimated').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-reanimated/android')
+//线性库
+include ':react-native-linear-gradient'
+project(':react-native-linear-gradient').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-linear-gradient/android')
+include ':react-native-smartassets'
+project(':react-native-smartassets').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-smartassets/android')
+include ':react-native-safe-area-context'
+project(':react-native-safe-area-context').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-safe-area-context/android')
+include ':react-native-screens'
+project(':react-native-screens').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-screens/android')
+include ':react-native-svg'
+project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../LoveShowRn/node_modules/react-native-svg/android')
+
+
+
+
+

@@ -1,0 +1,109 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'com.kezong.fat-aar'
+}
+
+android {
+    compileSdk 30
+
+    defaultConfig {
+        minSdk 19
+        targetSdk 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            def fileName = output.outputFileName
+            if (fileName != null && fileName.endsWith(".aar")) {
+                def outName = "LiveReactNativeSDK-${projectVersion}.aar"
+                output.outputFileName = outName
+            }
+        }
+    }
+}
+
+
+dependencies {
+    implementation project(path: ':react-native-smartassets')
+    //api fileTree(include: ['*.jar'], dir: 'libs')
+    /*embed project(path: ':ReactNative_aar', configuration: 'default')
+    embed project(path: ':jsc_aar', configuration: 'default')
+    embed 'com.facebook.yoga:proguard-annotations:1.14.1'
+    embed 'javax.inject:javax.inject:1'
+    embed 'com.facebook.fresco:nativeimagefilters:2.0.0'
+    embed 'com.facebook.fresco:nativeimagetranscoder:2.0.0'
+    embed 'com.facebook.soloader:soloader:0.8.0'
+    embed 'com.facebook.soloader:annotation:0.8.0'
+    embed 'com.facebook.soloader:nativeloader:0.8.0'
+    embed 'com.facebook.fbjni:fbjni-java-only:0.0.3'
+    embed 'com.android.installreferrer:installreferrer:1.1.2'
+    embed project(':react-native-device-info')
+    embed project(':react-native-gesture-handler')
+    embed project(':react-native-reanimated')
+    embed project(':react-native-linear-gradient')
+    embed project(':react-native-smartassets')
+    //todo react-native-device-info这类动态链接库如何引入？？？
+    embed 'com.facebook.infer.annotation:infer-annotation:0.11.2'
+    implementation('androidx.appcompat:appcompat:1.2.0')
+    embed 'com.facebook.fresco:fresco:2.0.0'
+    embed 'com.facebook.fresco:fbcore:2.0.0'
+    embed 'com.facebook.fresco:drawee:2.0.0'
+    embed 'com.facebook.fresco:imagepipeline:2.0.0'
+    embed 'com.facebook.fresco:imagepipeline-base:2.0.0'
+    embed 'com.facebook.fresco:imagepipeline-okhttp3:2.0.0'
+    embed 'com.google.code.findbugs:jsr305:3.0.2'
+    embed 'com.squareup.okhttp3:okhttp:3.12.1'
+    embed 'com.squareup.okhttp3:okhttp-urlconnection:3.12.1'
+    embed 'com.squareup.okio:okio:1.15.0'*/
+
+    embed project(path: ':ReactNative_aar', configuration: 'default')
+    embed project(path: ':jsc_aar', configuration: 'default')
+    embed 'com.facebook.yoga:proguard-annotations:1.14.1'
+    embed 'javax.inject:javax.inject:1'
+    implementation 'com.facebook.fresco:nativeimagefilters:2.0.0'
+    implementation 'com.facebook.fresco:nativeimagetranscoder:2.0.0'
+    implementation 'com.facebook.soloader:soloader:0.8.0'
+    implementation 'com.facebook.soloader:annotation:0.8.0'
+    implementation 'com.facebook.soloader:nativeloader:0.8.0'
+    embed 'com.facebook.fbjni:fbjni-java-only:0.0.3'
+    embed 'com.android.installreferrer:installreferrer:1.1.2'
+    embed project(':react-native-device-info')
+    embed project(':react-native-gesture-handler')
+    embed project(':react-native-reanimated')
+    embed project(':react-native-linear-gradient')
+    embed project(':react-native-smartassets')
+    embed project(':react-native-safe-area-context')
+    embed project(':react-native-screens')
+    embed project(':react-native-svg')
+    //todo react-native-device-info这类动态链接库如何引入？？？
+    implementation 'com.facebook.infer.annotation:infer-annotation:0.11.2'
+    implementation('androidx.appcompat:appcompat:1.2.0')
+    implementation 'com.facebook.fresco:fresco:2.0.0'
+    implementation 'com.facebook.fresco:fbcore:2.0.0'
+    implementation 'com.facebook.fresco:drawee:2.0.0'
+    implementation 'com.facebook.fresco:imagepipeline:2.0.0'
+    implementation 'com.facebook.fresco:imagepipeline-base:2.0.0'
+    implementation 'com.facebook.fresco:imagepipeline-okhttp3:2.0.0'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.12.1'
+    implementation 'com.squareup.okio:okio:1.15.0'
+}
