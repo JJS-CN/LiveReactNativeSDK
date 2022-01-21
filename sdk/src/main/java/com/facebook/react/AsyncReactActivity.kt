@@ -27,6 +27,7 @@ import com.facebook.react.common.ScriptType
 import com.facebook.react.shell.MainReactPackage
 import com.horcrux.svg.SvgPackage
 import com.learnium.RNDeviceInfo.RNDeviceInfo
+import com.oblador.vectoricons.VectorIconsPackage
 import com.smallnew.smartassets.RNSmartassetsPackage
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage
 import com.swmansion.reanimated.ReanimatedPackage
@@ -107,6 +108,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
               packages.add(RNScreensPackage())
               packages.add(SafeAreaContextPackage())
               packages.add(SvgPackage())
+              packages.add(VectorIconsPackage())
               //packages.add(BaseConfigPackage())
               return packages
             }
