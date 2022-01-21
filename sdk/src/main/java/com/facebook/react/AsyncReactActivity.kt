@@ -45,7 +45,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   protected var bundleLoaded = false
   private var bundle: RnBundle? = null
   private var mainComponentName: String? = null
-  private var mReactNativeHost: ReactNativeHost? = null;
+  companion object {
+    const val INTENT_KEY_COMPONENT_NAME = "INTENT_KEY_COMPONENT_NAME"
+    const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
+    private var mReactNativeHost: ReactNativeHost? = null;
+  }
 
   /* public static void start(Context context, String componentName, RnBundle rnBundle) {
       Log.e("AsyncReactActivity", "start:" + componentName + "  bundle:" + rnBundle.toString());
@@ -329,8 +333,5 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   protected val reactInstanceManager: ReactInstanceManager
     protected get() = mDelegate!!.reactInstanceManager
 
-  companion object {
-    const val INTENT_KEY_COMPONENT_NAME = "INTENT_KEY_COMPONENT_NAME"
-    const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
-  }
+
 }

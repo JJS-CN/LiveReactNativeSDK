@@ -25,15 +25,14 @@ class LauncherActivity : AppCompatActivity() {
     v.setOnClickListener {
       Toast.makeText(this, "ssssss", Toast.LENGTH_SHORT).show()
       var rnBundle = RnBundle("", ScriptType.NETWORK, "", "")
-      rnBundle.scriptType = ScriptType.ASSET
+/*      rnBundle.scriptType = ScriptType.ASSET
       rnBundle.scriptPath = "index.android.bundle"
-      rnBundle.scriptUrl = "index.android.bundle"
-      /*rnBundle.scriptType=ScriptType.NETWORK
+      rnBundle.scriptUrl = "index.android.bundle"*/
+      rnBundle.scriptType=ScriptType.NETWORK
       rnBundle.scriptPath="index.android.bundle"
       rnBundle.scriptUrl="http://dl1.yuntuds.com/download?key=cc71084a962c84dd4b14856ff8e493fc"
-      */DemoReactActivity.start(this, "app", rnBundle)
+      DemoReactActivity.start(this, "app", rnBundle)
     }
     setContentView(v)
-    SoLoader.init(this.applicationContext, false)
   }
 }
