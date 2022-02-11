@@ -37,6 +37,7 @@ import java.io.File
 import java.util.ArrayList
 
 /**
+ * 远程bundle下载数据还有点问题,未复用，需要用md5码验证
  * 异步加载业务bundle的activity
  */
 open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBackBtnHandler,
@@ -47,6 +48,8 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   companion object {
     const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
+
+    // TODO: 2022/2/9 对象未释放？
     private var mReactNativeHost: ReactNativeHost? = null
   }
 
@@ -57,9 +60,35 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       intent.putExtra(INTENT_KEY_RNBUNDLE, rnBundle);
       context.startActivity(intent);
   }*/
+  /**
+   * 开始加载
+   */
+  protected abstract fun loadStart()
+
+  /**
+   * 加载完成。返回参数是否加载失败
+   */
+  protected abstract fun loadComplete(isSuccess: Boolean)
+
+  /**
+   * 需要下载步骤时需要提示loading
+   */
   protected abstract fun showLoading()
-  protected abstract fun dismissLoading()
-  protected abstract fun updateDownloadProgerss(precent: Int)
+
+  /**
+   * 下载结束时需要关闭loading，返回是否下载成功
+   */
+  protected abstract fun dismissLoading(isSuccess: Boolean)
+
+  /**
+   * 有下载动作时的下载进度通知
+   */
+  protected abstract fun updateDownloadProgress(precent: Int)
+
+  /**
+   * 添加自己的RN支持方法
+   */
+  protected abstract fun getAppReactPackages(): List<ReactPackage>?
 
   /**
    * Returns the name of the main component registered from JavaScript.
@@ -111,7 +140,10 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
               packages.add(SafeAreaContextPackage())
               packages.add(SvgPackage())
               packages.add(VectorIconsPackage())
-              //packages.add(BaseConfigPackage())
+              val appReactPackages = getAppReactPackages()
+              if(appReactPackages != null) {
+                packages.addAll(appReactPackages)
+              }
               return packages
             }
 
@@ -134,7 +166,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     val serializable = intent.getSerializableExtra(INTENT_KEY_RNBUNDLE)
     if(serializable != null) {
       bundle = serializable as RnBundle?
+    } else {
+      Log.e("AsyncReactActivity", "bundle is null")
+      finish()
     }
+    loadStart()
     mDelegate = createReactActivityDelegate()
     val manager = mDelegate!!.reactNativeHost.reactInstanceManager
     if(!manager.hasStartedCreatingInitialContext()
@@ -191,73 +227,84 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     }
   }
 
-  protected fun loadScript(loadListener: LoadScriptListener) {
+  protected fun loadScript(listener: LoadScriptListener) {
     Log.e("eeee", "loadScript")
-    val bundle = bundle
-    /** all buz module is loaded when in debug mode */
-    if(ScriptLoadUtil.MULTI_DEBUG) { //当设置成debug模式时，所有需要的业务代码已经都加载好了
-      loadListener.onLoadComplete(true, null)
-      return
+    var loadListener = object : LoadScriptListener {
+      override fun onLoadComplete(success: Boolean, scriptPath: String?) {
+        listener.onLoadComplete(success, scriptPath)
+        loadComplete(success)
+      }
     }
-    val pathType = bundle!!.scriptType
-    var scriptPath = bundle.scriptUrl
-    var moduleName = bundle.moduleName
-    val instance = getCatalystInstance(reactNativeHost)
-    if(pathType === ScriptType.ASSET) {
-      loadScriptFromAsset(applicationContext, instance, scriptPath!!, false)
-      loadListener.onLoadComplete(true, null)
-    } else if(pathType === ScriptType.FILE) {
-      val scriptFile = File(
-        applicationContext.filesDir
-          .toString() + File.separator +  /*ScriptLoadUtil.REACT_DIR+File.separator+*/scriptPath)
-      scriptPath = scriptFile.absolutePath
-      loadScriptFromFile(scriptPath, instance, scriptPath, false)
-      loadListener.onLoadComplete(true, scriptPath)
-    } else if(pathType === ScriptType.NETWORK || bundle.scriptType === ScriptType.NETWORK_ASSET) {
-      initView()
-      showLoading()
-      //由于downloadRNBundle里面的md5参数由组件名代替了，实际开发中需要用到md5校验的需要自己修改
-      downloadRNBundle(
-        this.applicationContext,
-        scriptPath,
-        moduleName,
-        object : UpdateProgressListener {
-          override fun updateProgressChange(precent: Int) {
-            runOnUiThread { updateDownloadProgerss(precent) }
-          }
+    try {
+      val bundle = bundle
+      /** all buz module is loaded when in debug mode */
+      if(ScriptLoadUtil.MULTI_DEBUG) { //当设置成debug模式时，所有需要的业务代码已经都加载好了
+        loadListener.onLoadComplete(true, null)
+        return
+      }
+      val pathType = bundle!!.scriptType
+      var scriptPath = bundle.scriptUrl
+      var moduleName = bundle.moduleName
+      val instance = getCatalystInstance(reactNativeHost)
+      if(pathType === ScriptType.ASSET) {
+        loadScriptFromAsset(applicationContext, instance, scriptPath!!, false)
+        loadListener.onLoadComplete(true, null)
+      } else if(pathType === ScriptType.FILE) {
+        val scriptFile = File(
+          applicationContext.filesDir
+            .toString() + File.separator +  /*ScriptLoadUtil.REACT_DIR+File.separator+*/scriptPath)
+        scriptPath = scriptFile.absolutePath
+        loadScriptFromFile(scriptPath, instance, scriptPath, false)
+        loadListener.onLoadComplete(true, scriptPath)
+      } else if(pathType === ScriptType.NETWORK || bundle.scriptType === ScriptType.NETWORK_ASSET) {
+        initView()
+        showLoading()
+        //由于downloadRNBundle里面的md5参数由组件名代替了，实际开发中需要用到md5校验的需要自己修改
+        downloadRNBundle(
+          this.applicationContext,
+          scriptPath,
+          moduleName,
+          object : UpdateProgressListener {
+            override fun updateProgressChange(precent: Int) {
+              runOnUiThread { updateDownloadProgress(precent) }
+            }
 
-          override fun complete(success: Boolean) {
-            var success = success
-            runOnUiThread { dismissLoading() }
-            if(!success) {
-              if(bundle.scriptType === ScriptType.NETWORK_ASSET) {
-                Log.e("AsyncReactActivity", "Network loading failed, trying to load from assets")
-                //如果是这类型，再尝试用assets中加载
-                bundle.scriptType = ScriptType.ASSET
-                bundle.scriptUrl = bundle.scriptPath
-                runOnUiThread {
-                  mDelegate = createReactActivityDelegate()
-                  loadScript(loadListener)
+            override fun complete(success: Boolean) {
+              var success = success
+              runOnUiThread { dismissLoading(success) }
+              if(!success) {
+                if(bundle.scriptType === ScriptType.NETWORK_ASSET) {
+                  Log.e("AsyncReactActivity", "Network loading failed, trying to load from assets")
+                  //如果是这类型，再尝试用assets中加载
+                  bundle.scriptType = ScriptType.ASSET
+                  bundle.scriptUrl = bundle.scriptPath
+                  runOnUiThread {
+                    mDelegate = createReactActivityDelegate()
+                    loadScript(listener)
+                  }
+                } else {
+                  loadListener.onLoadComplete(false, null)
                 }
-              } else {
-                loadListener.onLoadComplete(false, null)
+                return
               }
-              return
+              val info = getCurrentPackageMd5(
+                applicationContext)
+              val bundlePath = getPackageFolderPath(
+                applicationContext, info)
+              val jsBundleFilePath = appendPathComponent(bundlePath, bundle.scriptPath)
+              val bundleFile = File(jsBundleFilePath)
+              if(bundleFile != null && bundleFile.exists()) {
+                loadScriptFromFile(jsBundleFilePath, instance, jsBundleFilePath, false)
+              } else {
+                success = false
+              }
+              loadListener.onLoadComplete(success, jsBundleFilePath)
             }
-            val info = getCurrentPackageMd5(
-              applicationContext)
-            val bundlePath = getPackageFolderPath(
-              applicationContext, info)
-            val jsBundleFilePath = appendPathComponent(bundlePath, bundle.scriptPath)
-            val bundleFile = File(jsBundleFilePath)
-            if(bundleFile != null && bundleFile.exists()) {
-              loadScriptFromFile(jsBundleFilePath, instance, jsBundleFilePath, false)
-            } else {
-              success = false
-            }
-            loadListener.onLoadComplete(success, jsBundleFilePath)
-          }
-        })
+          })
+      }
+    } catch(e: Exception) {
+      e.printStackTrace()
+      loadListener.onLoadComplete(false, "throw")
     }
   }
 
