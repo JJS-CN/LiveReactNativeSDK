@@ -3,7 +3,16 @@ package com.live.react.demo
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.facebook.react.AsyncReactActivity
+import com.facebook.react.ReactPackage
+import com.facebook.react.common.RNLoadingConfig
+import com.facebook.react.common.ScriptType
 import com.facebook.react.common.utils.RnBundle
 
 /**
@@ -13,14 +22,34 @@ import com.facebook.react.common.utils.RnBundle
  */
 open class DemoReactActivity : AsyncReactActivity() {
   companion object {
-    fun start(context: Context, componentName: String, rnBundle: RnBundle) {
-      Log.e("AsyncReactActivity", "start:" + componentName + "  bundle:" + rnBundle.toString())
+    fun start(context: Context, rnBundle: RnBundle) {
+      Log.e("AsyncReactActivity", "start:" + "  bundle:" + rnBundle.toString())
       val intent = Intent(context, DemoReactActivity::class.java)
-      intent.putExtra(INTENT_KEY_COMPONENT_NAME, componentName)
       intent.putExtra(INTENT_KEY_RNBUNDLE, rnBundle)
       context.startActivity(intent)
     }
   }
+
+  override fun getAppReactPackages(): List<ReactPackage>? {
+    return null
+  }
+
+  override fun getRnLoadConfig(loadConfig: RNLoadingConfig): RNLoadingConfig {
+    return loadConfig
+  }
+
+  override fun loadComplete(isSuccess: Boolean) {
+  }
+
+  override fun loadStart() {
+  }
+
+  override fun showLoading() {
+  }
+
+  override fun updateDownloadProgress(precent: Int) {
+  }
+
 
   /*override fun onPause() {
     super.onPause()
@@ -40,13 +69,4 @@ open class DemoReactActivity : AsyncReactActivity() {
     button.layoutParams = lp
     group.addView(button)
   }*/
-
-  override fun showLoading() {
-  }
-
-  override fun dismissLoading() {
-  }
-
-  override fun updateDownloadProgerss(precent: Int) {
-  }
 }

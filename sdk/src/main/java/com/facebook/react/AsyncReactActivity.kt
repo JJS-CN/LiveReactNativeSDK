@@ -19,10 +19,13 @@ import com.facebook.react.common.utils.UpdateProgressListener
 import android.content.Intent
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import com.BV.LinearGradient.LinearGradientPackage
 import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.common.LoadScriptListener
+import com.facebook.react.common.RNLoadingConfig
 import com.facebook.react.common.ScriptType
 import com.facebook.react.shell.MainReactPackage
 import com.horcrux.svg.SvgPackage
@@ -45,6 +48,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   private var mDelegate: ReactActivityDelegate? = null
   protected var bundleLoaded = false
   private var bundle: RnBundle? = null
+  protected lateinit var loadConfig: RNLoadingConfig
 
   companion object {
     const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
@@ -60,6 +64,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       intent.putExtra(INTENT_KEY_RNBUNDLE, rnBundle);
       context.startActivity(intent);
   }*/
+
+  protected abstract fun getRnLoadConfig(loadConfig: RNLoadingConfig): RNLoadingConfig
+
   /**
    * 开始加载
    */
@@ -74,11 +81,6 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
    * 需要下载步骤时需要提示loading
    */
   protected abstract fun showLoading()
-
-  /**
-   * 下载结束时需要关闭loading，返回是否下载成功
-   */
-  protected abstract fun dismissLoading(isSuccess: Boolean)
 
   /**
    * 有下载动作时的下载进度通知
@@ -103,8 +105,10 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       null
     } else bundle!!.moduleName
 
-  protected fun reload(componentName: String?, rnBundle: RnBundle?) {
-    bundle = rnBundle
+  protected fun reload(rnBundle: RnBundle?) {
+    rnBundle?.let {
+      bundle = rnBundle
+    }
     mDelegate = createReactActivityDelegate()
     loadScript(object : LoadScriptListener {
       override fun onLoadComplete(success: Boolean, scriptPath: String?) {
@@ -171,6 +175,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       finish()
     }
     loadStart()
+    val rnLoadingConfig = RNLoadingConfig(this)
+    rnLoadingConfig.reloadListener = View.OnClickListener {
+      reload(bundle)
+    }
+    loadConfig = getRnLoadConfig(rnLoadingConfig)
     mDelegate = createReactActivityDelegate()
     val manager = mDelegate!!.reactNativeHost.reactInstanceManager
     if(!manager.hasStartedCreatingInitialContext()
@@ -233,6 +242,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       override fun onLoadComplete(success: Boolean, scriptPath: String?) {
         listener.onLoadComplete(success, scriptPath)
         loadComplete(success)
+        if(!success && loadConfig.errorView != null) {
+          setContentView(loadConfig.errorView)
+        }
       }
     }
     try {
@@ -259,6 +271,10 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       } else if(pathType === ScriptType.NETWORK || bundle.scriptType === ScriptType.NETWORK_ASSET) {
         initView()
         showLoading()
+        if(loadConfig.progressView != null) {
+          //展示下载进度条
+          setContentView(loadConfig.progressView)
+        }
         //由于downloadRNBundle里面的md5参数由组件名代替了，实际开发中需要用到md5校验的需要自己修改
         downloadRNBundle(
           this.applicationContext,
@@ -266,12 +282,18 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
           moduleName,
           object : UpdateProgressListener {
             override fun updateProgressChange(precent: Int) {
-              runOnUiThread { updateDownloadProgress(precent) }
+              runOnUiThread {
+                updateDownloadProgress(precent)
+                if(loadConfig.progressView != null) {
+                  //展示下载进度条
+                  var progressView = loadConfig.progressView as ProgressBar
+                  progressView.progress = precent
+                }
+              }
             }
 
             override fun complete(success: Boolean) {
               var success = success
-              runOnUiThread { dismissLoading(success) }
               if(!success) {
                 if(bundle.scriptType === ScriptType.NETWORK_ASSET) {
                   Log.e("AsyncReactActivity", "Network loading failed, trying to load from assets")
@@ -283,7 +305,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
                     loadScript(listener)
                   }
                 } else {
-                  loadListener.onLoadComplete(false, null)
+                  runOnUiThread {
+                    loadListener.onLoadComplete(false, null)
+                  }
                 }
                 return
               }
@@ -298,7 +322,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
               } else {
                 success = false
               }
-              loadListener.onLoadComplete(success, jsBundleFilePath)
+              runOnUiThread {
+                loadListener.onLoadComplete(success, jsBundleFilePath)
+              }
             }
           })
       }
