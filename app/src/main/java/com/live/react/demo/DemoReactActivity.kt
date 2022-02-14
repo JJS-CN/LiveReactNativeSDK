@@ -35,19 +35,32 @@ open class DemoReactActivity : AsyncReactActivity() {
   }
 
   override fun getRnLoadConfig(loadConfig: RNLoadingConfig): RNLoadingConfig {
+    ((loadConfig.errorView as ViewGroup).getChildAt(1)as ViewGroup).getChildAt(1)
+      .setOnClickListener {  var rnBundle = RnBundle("", ScriptType.NETWORK, "", "")
+/*      rnBundle.scriptType = ScriptType.ASSET
+      rnBundle.scriptPath = "index.android.bundle"
+      rnBundle.scriptUrl = "index.android.bundle"*/
+        rnBundle.scriptType = ScriptType.NETWORK
+        rnBundle.moduleName = "app"
+        rnBundle.scriptPath = "index.android.bundle"
+        rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=cc71084a962c84dd4b14856ff8e493fc"
+     reload(rnBundle)
+      }
     return loadConfig
   }
 
   override fun loadComplete(isSuccess: Boolean) {
+    println("loadComplete:"+isSuccess)
   }
 
   override fun loadStart() {
+    println("loadStart:")
   }
 
-  override fun showLoading() {
+  override fun showLoading() {    println("showLoading:")
   }
 
-  override fun updateDownloadProgress(precent: Int) {
+  override fun updateDownloadProgress(precent: Int) {  println("updateDownloadProgress:"+precent)
   }
 
 

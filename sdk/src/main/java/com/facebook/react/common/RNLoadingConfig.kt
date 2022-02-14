@@ -1,5 +1,6 @@
 package com.facebook.react.common
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.view.Gravity
@@ -35,21 +36,40 @@ class RNLoadingConfig(context: Context) {
   private fun buildErrorView(context: Context) {
     val linearLayout = LinearLayout(context)
     val lp = FrameLayout.LayoutParams(
-      FrameLayout.LayoutParams.WRAP_CONTENT,
-      FrameLayout.LayoutParams.WRAP_CONTENT)
+      FrameLayout.LayoutParams.MATCH_PARENT,
+      FrameLayout.LayoutParams.MATCH_PARENT)
     lp.gravity = Gravity.CENTER
+
     linearLayout.gravity = Gravity.CENTER
     linearLayout.layoutParams = lp
     linearLayout.orientation = LinearLayout.VERTICAL
+
+    val textLp = LinearLayout.LayoutParams(
+      LinearLayout.LayoutParams.WRAP_CONTENT,
+      LinearLayout.LayoutParams.WRAP_CONTENT)
+    textLp.gravity = Gravity.CENTER
     val errText = TextView(context)
     errText.text = "加载失败"
+    errText.layoutParams = textLp
     linearLayout.addView(errText)
+    val h = LinearLayout(context)
+    h.orientation = LinearLayout.HORIZONTAL
+    h.gravity = Gravity.CENTER
+    val exitBtn = Button(context)
+    exitBtn.text = "退出"
+    exitBtn.setOnClickListener {
+      if(context is Activity) {
+        context.finish()
+      }
+    }
+    h.addView(exitBtn)
     val errBtn = Button(context)
     errBtn.text = "重试"
     errBtn.setOnClickListener {
       reloadListener?.onClick(it)
     }
-    linearLayout.addView(errBtn)
+    h.addView(errBtn)
+    linearLayout.addView(h)
     errorView = linearLayout
   }
 

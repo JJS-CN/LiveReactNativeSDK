@@ -32,7 +32,7 @@ class LauncherActivity : AppCompatActivity() {
       rnBundle.scriptType = ScriptType.NETWORK
       rnBundle.moduleName = "app"
       rnBundle.scriptPath = "index.android.bundle"
-      rnBundle.scriptUrl = "http://dl1.yuntuds.com/download?key=cc71084a962c84dd4b14856ff8e493fc2"
+      rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=cc71084a962c84dd4b14856ff8e493fc2"
       DemoReactActivity.start(this, rnBundle)
     }
     setContentView(v)
