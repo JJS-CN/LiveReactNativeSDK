@@ -255,19 +255,20 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
         return
       }
       val pathType = bundle!!.scriptType
-      var scriptPath = bundle.scriptUrl
-      var moduleName = bundle.moduleName
+      var scriptUrl = bundle.scriptUrl
+      val scriptPath = bundle.scriptPath
+      var moduleName = bundle.moduleName + bundle.md5
       val instance = getCatalystInstance(reactNativeHost)
       if(pathType === ScriptType.ASSET) {
-        loadScriptFromAsset(applicationContext, instance, scriptPath!!, false)
+        loadScriptFromAsset(applicationContext, instance, scriptUrl!!, false)
         loadListener.onLoadComplete(true, null)
       } else if(pathType === ScriptType.FILE) {
         val scriptFile = File(
           applicationContext.filesDir
-            .toString() + File.separator +  /*ScriptLoadUtil.REACT_DIR+File.separator+*/scriptPath)
-        scriptPath = scriptFile.absolutePath
-        loadScriptFromFile(scriptPath, instance, scriptPath, false)
-        loadListener.onLoadComplete(true, scriptPath)
+            .toString() + File.separator +  /*ScriptLoadUtil.REACT_DIR+File.separator+*/scriptUrl)
+        scriptUrl = scriptFile.absolutePath
+        loadScriptFromFile(scriptUrl, instance, scriptUrl, false)
+        loadListener.onLoadComplete(true, scriptUrl)
       } else if(pathType === ScriptType.NETWORK || bundle.scriptType === ScriptType.NETWORK_ASSET) {
         initView()
         showLoading()
@@ -278,8 +279,9 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
         //由于downloadRNBundle里面的md5参数由组件名代替了，实际开发中需要用到md5校验的需要自己修改
         downloadRNBundle(
           this.applicationContext,
-          scriptPath,
+          scriptUrl,
           moduleName,
+          scriptPath,
           object : UpdateProgressListener {
             override fun updateProgressChange(precent: Int) {
               runOnUiThread {
@@ -311,10 +313,8 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
                 }
                 return
               }
-              val info = getCurrentPackageMd5(
-                applicationContext)
               val bundlePath = getPackageFolderPath(
-                applicationContext, info)
+                applicationContext, moduleName)
               val jsBundleFilePath = appendPathComponent(bundlePath, bundle.scriptPath)
               val bundleFile = File(jsBundleFilePath)
               if(bundleFile != null && bundleFile.exists()) {

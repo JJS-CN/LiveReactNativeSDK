@@ -49,9 +49,20 @@ public class FileUtils {
         return new File(basePath, appendPathComponent).getAbsolutePath();
     }
 
-    public static void downloadRNBundle(final Context context, final String url, final String md5, final UpdateProgressListener listener) {
+    public static void downloadRNBundle(final Context context, final String url, final String md5, String scriptPath, final UpdateProgressListener listener) {
         final String downloadPath = context.getFilesDir() + File.separator + BUNDLE_DOWNLOADPATH;
         final String fileName = RN_NAME;
+        String bundlePath = getPackageFolderPath(
+                context, md5);
+        String jsBundleFilePath = appendPathComponent(bundlePath, scriptPath);
+        File bundleFile = new File(jsBundleFilePath);
+        if (bundleFile != null && bundleFile.exists()) {
+            System.out.println("认为已有下载内容，直接加载数据");
+            if (listener != null) {
+                listener.complete(true);
+                return;
+            }
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -126,6 +137,7 @@ public class FileUtils {
         boolean result = false;
         // Download the file while checking if it is a zip and notifying client of progress.
         try {
+            System.out.println("start download:" + url);
             URL downloadUrl = new URL(downloadUrlString);
             connection = (HttpURLConnection) (downloadUrl.openConnection());
             connection.setConnectTimeout(5000);
