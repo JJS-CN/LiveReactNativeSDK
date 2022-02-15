@@ -21,7 +21,7 @@ allprojects {
         maven { url 'https://artifact.bytedance.com/repository/pangle' }
         maven {
             // All of React Native (JS, Android binaries) is installed from npm
-            url "$rootDir/../LoveShowRn/node_modules/react-native/android"
+            url "$rootDir/../RNModule/node_modules/react-native/android"
         }
         mavenCentral()
         google()
