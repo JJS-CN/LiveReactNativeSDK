@@ -7,26 +7,54 @@ import java.io.Serializable
  * 加载rn bundle的信息
  */
 open class RnBundle : Serializable {
-  var scriptPath: String? = null
-  var scriptType: ScriptType? = null
+  //var scriptPath: String? = null
+  var scriptType: ScriptType = ScriptType.NETWORK
+  //当从ASSETS中加载时，这个作为存储bundleName的字段
   var scriptUrl: String? = null
+
   var moduleName: String = ""
+  var pageId: String = ""
   var md5: String = ""
 
   constructor()
-  constructor(scriptPath: String?, scriptType: ScriptType?, scriptUrl: String?, md5: String) {
-    this.scriptPath = scriptPath
-    this.scriptType = scriptType
+  constructor(pageId: String, scriptUrl: String?, md5: String) {
+    this.pageId = pageId
     this.scriptUrl = scriptUrl
     this.md5 = md5
+    this.scriptType = ScriptType.NETWORK
+  }
+
+  constructor(pageId: String,
+              scriptUrl: String?,
+              md5: String,
+              moduleName: String) {
+    this.pageId = pageId
+    this.scriptUrl = scriptUrl
+    this.md5 = md5
+    this.moduleName = moduleName
+    this.scriptType = ScriptType.ASSET
+  }
+
+  constructor(pageId: String,
+              scriptUrl: String?,
+              md5: String,
+              moduleName: String,
+              scriptType: ScriptType) {
+    this.pageId = pageId
+    this.scriptUrl = scriptUrl
+    this.md5 = md5
+    this.moduleName = moduleName
+    this.scriptType = scriptType
   }
 
 
   override fun toString(): String {
     return "RnBundle{" +
-        "scriptPath='" + scriptPath + '\'' +
+        "pageId='" + pageId + '\'' +
         ", scriptType=" + scriptType +
         ", scriptUrl='" + scriptUrl + '\'' +
+        ", moduleName='" + moduleName + '\'' +
+        ", md5='" + md5 + '\'' +
         '}'
   }
 }

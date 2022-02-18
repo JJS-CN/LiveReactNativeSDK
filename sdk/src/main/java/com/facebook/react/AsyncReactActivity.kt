@@ -45,14 +45,12 @@ import java.util.ArrayList
  */
 open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBackBtnHandler,
   PermissionAwareActivity {
-  private var mDelegate: ReactActivityDelegate? = null
+  private lateinit var mDelegate: ReactActivityDelegate
   protected var bundleLoaded = false
-  private var bundle: RnBundle? = null
+  private lateinit var bundle: RnBundle
   protected lateinit var loadConfig: RNLoadingConfig
 
   companion object {
-    const val INTENT_KEY_RNBUNDLE = "INTENT_KEY_RNBUNDLE"
-
     // TODO: 2022/2/9 对象未释放？
     private var mReactNativeHost: ReactNativeHost? = null
   }
@@ -99,11 +97,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
    */
   private val mainComponentNameInner: String?
     private get() = if(!bundleLoaded &&
-      (bundle!!.scriptType === ScriptType.NETWORK
-          || bundle!!.scriptType === ScriptType.NETWORK_ASSET)
+      (bundle.scriptType === ScriptType.NETWORK
+          || bundle.scriptType === ScriptType.NETWORK_ASSET)
     ) {
       null
-    } else bundle!!.moduleName
+    } else bundle.moduleName
 
   protected fun reload(rnBundle: RnBundle?) {
     rnBundle?.let {
@@ -118,6 +116,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
         }
       }
     })
+
   }
 
   /**
@@ -151,7 +150,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
               return packages
             }
 
-            override fun getBundleAssetName(): String? {
+            override fun getBundleAssetName(): String {
               return "platform.android.bundle"
             }
 
@@ -167,21 +166,28 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val serializable = intent.getSerializableExtra(INTENT_KEY_RNBUNDLE)
+    /*val serializable = intent.getSerializableExtra(INTENT_KEY_RNBUNDLE)
     if(serializable != null) {
-      bundle = serializable as RnBundle?
+      bundle = serializable as RnBundle
     } else {
       Log.e("AsyncReactActivity", "bundle is null")
       finish()
-    }
-    loadStart()
+    }*/
     val rnLoadingConfig = RNLoadingConfig(this)
     rnLoadingConfig.reloadListener = View.OnClickListener {
       reload(bundle)
     }
     loadConfig = getRnLoadConfig(rnLoadingConfig)
+    loadStart()
+  }
+
+  /**
+   * 从服务器获取数据后，包装成rnBundle调用此方法开始加载
+   */
+  protected fun startLoadRNBundle(rnBundle: RnBundle) {
+    bundle = rnBundle
     mDelegate = createReactActivityDelegate()
-    val manager = mDelegate!!.reactNativeHost.reactInstanceManager
+    val manager = mDelegate.reactNativeHost.reactInstanceManager
     if(!manager.hasStartedCreatingInitialContext()
       || getCatalystInstance(reactNativeHost) == null
     ) {
@@ -198,7 +204,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
           manager.removeReactInstanceEventListener(this)
         }
       })
-      mDelegate!!.reactNativeHost.reactInstanceManager.createReactContextInBackground()
+      mDelegate.reactNativeHost.reactInstanceManager.createReactContextInBackground()
     } else {
       loadScript(object : LoadScriptListener {
         override fun onLoadComplete(success: Boolean, scriptPath: String?) {
@@ -211,6 +217,15 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     }
   }
 
+  /**
+   * 发生各种错误时，调用此方法展示错误UI
+   */
+  protected fun showLoadErrorView() {
+    if(loadConfig.errorView != null) {
+      setContentView(loadConfig.errorView)
+    }
+  }
+
   protected fun runApp(scriptPath: String?) {
     var scriptPath = scriptPath
     Log.e("eeee", "runApp")
@@ -220,13 +235,13 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     val path = scriptPath
     val bundle = bundle
     val reactInstanceManager =
-      mDelegate!!.reactNativeHost.reactInstanceManager
-    if(bundle!!.scriptType === ScriptType.NETWORK || bundle!!.scriptType === ScriptType.NETWORK_ASSET) { //如果是网络加载的话，此时正在子线程
+      mDelegate.reactNativeHost.reactInstanceManager
+    if(bundle.scriptType === ScriptType.NETWORK || bundle.scriptType === ScriptType.NETWORK_ASSET) { //如果是网络加载的话，此时正在子线程
       runOnUiThread {
         setJsBundleAssetPath(
           reactInstanceManager.currentReactContext!!,
           path)
-        mDelegate!!.loadApp(mainComponentNameInner)
+        mDelegate.loadApp(mainComponentNameInner)
       }
     } else { //主线程运行
       setJsBundleAssetPath(
@@ -248,16 +263,14 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
       }
     }
     try {
-      val bundle = bundle
+
       /** all buz module is loaded when in debug mode */
       if(ScriptLoadUtil.MULTI_DEBUG) { //当设置成debug模式时，所有需要的业务代码已经都加载好了
         loadListener.onLoadComplete(true, null)
         return
       }
-      val pathType = bundle!!.scriptType
+      val pathType = bundle.scriptType
       var scriptUrl = bundle.scriptUrl
-      val scriptPath = bundle.scriptPath
-      var moduleName = bundle.moduleName + bundle.md5
       val instance = getCatalystInstance(reactNativeHost)
       if(pathType === ScriptType.ASSET) {
         loadScriptFromAsset(applicationContext, instance, scriptUrl!!, false)
@@ -276,12 +289,12 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
           //展示下载进度条
           setContentView(loadConfig.progressView)
         }
-        //由于downloadRNBundle里面的md5参数由组件名代替了，实际开发中需要用到md5校验的需要自己修改
+        //根据pageId查找解压文件，从中返回modelName和bundlerName
         downloadRNBundle(
           this.applicationContext,
           scriptUrl,
-          moduleName,
-          scriptPath,
+          bundle.pageId,
+          bundle.md5,
           object : UpdateProgressListener {
             override fun updateProgressChange(precent: Int) {
               runOnUiThread {
@@ -294,14 +307,16 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
               }
             }
 
-            override fun complete(success: Boolean) {
+            override fun complete(success: Boolean, bundleName: String, modelName: String) {
+              //此时将从cof.json中获得的modelName保存到临时变量中，后续加载时使用！
+              bundle.moduleName = modelName
               var success = success
               if(!success) {
                 if(bundle.scriptType === ScriptType.NETWORK_ASSET) {
                   Log.e("AsyncReactActivity", "Network loading failed, trying to load from assets")
                   //如果是这类型，再尝试用assets中加载
                   bundle.scriptType = ScriptType.ASSET
-                  bundle.scriptUrl = bundle.scriptPath
+                  bundle.scriptUrl = bundleName
                   runOnUiThread {
                     mDelegate = createReactActivityDelegate()
                     loadScript(listener)
@@ -314,8 +329,8 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
                 return
               }
               val bundlePath = getPackageFolderPath(
-                applicationContext, moduleName)
-              val jsBundleFilePath = appendPathComponent(bundlePath, bundle.scriptPath)
+                applicationContext, bundle.pageId)
+              val jsBundleFilePath = appendPathComponent(bundlePath, bundleName)
               val bundleFile = File(jsBundleFilePath)
               if(bundleFile != null && bundleFile.exists()) {
                 loadScriptFromFile(jsBundleFilePath, instance, jsBundleFilePath, false)
@@ -335,7 +350,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   protected fun initView() {
-    mDelegate!!.onCreate(null)
+    mDelegate.onCreate(null)
   }
 
   override fun onPause() {
@@ -350,24 +365,24 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   override fun onDestroy() {
     super.onDestroy()
-    mDelegate!!.onDestroy()
+    mDelegate.onDestroy()
   }
 
   public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
-    mDelegate!!.onActivityResult(requestCode, resultCode, data)
+    mDelegate.onActivityResult(requestCode, resultCode, data)
   }
 
   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate!!.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    return mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
   }
 
   override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate!!.onKeyUp(keyCode, event) || super.onKeyUp(keyCode, event)
+    return mDelegate.onKeyUp(keyCode, event) || super.onKeyUp(keyCode, event)
   }
 
   override fun onKeyLongPress(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate!!.onKeyLongPress(keyCode, event) || super.onKeyLongPress(keyCode, event)
+    return mDelegate.onKeyLongPress(keyCode, event) || super.onKeyLongPress(keyCode, event)
   }
 
   override fun onBackPressed() {
@@ -379,7 +394,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   public override fun onNewIntent(intent: Intent) {
-    if(!mDelegate!!.onNewIntent(intent)) {
+    if(!mDelegate.onNewIntent(intent)) {
       super.onNewIntent(intent)
     }
   }
@@ -388,7 +403,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     permissions: Array<String>,
     requestCode: Int,
     listener: PermissionListener) {
-    mDelegate!!.requestPermissions(permissions, requestCode, listener)
+    mDelegate.requestPermissions(permissions, requestCode, listener)
   }
 
   override fun onRequestPermissionsResult(
@@ -396,13 +411,13 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     permissions: Array<String>,
     grantResults: IntArray) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    mDelegate!!.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    mDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults)
   }
 
   protected val reactNativeHost: ReactNativeHost
-    protected get() = mDelegate!!.reactNativeHost
+    protected get() = mDelegate.reactNativeHost
   protected val reactInstanceManager: ReactInstanceManager
-    protected get() = mDelegate!!.reactInstanceManager
+    protected get() = mDelegate.reactInstanceManager
 
 
 }

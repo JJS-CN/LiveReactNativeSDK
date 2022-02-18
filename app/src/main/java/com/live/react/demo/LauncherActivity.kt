@@ -24,16 +24,7 @@ class LauncherActivity : AppCompatActivity() {
     v.text = "跳转"
     v.setPadding(10)
     v.setOnClickListener {
-      Toast.makeText(this, "ssssss", Toast.LENGTH_SHORT).show()
-      var rnBundle = RnBundle("", ScriptType.NETWORK, "", "")
-/*      rnBundle.scriptType = ScriptType.ASSET
-      rnBundle.scriptPath = "index.android.bundle"
-      rnBundle.scriptUrl = "index.android.bundle"*/
-      rnBundle.scriptType = ScriptType.NETWORK
-      rnBundle.moduleName = "app"
-      rnBundle.scriptPath = "index.android.bundle"
-      rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=cc71084a962c84dd4b14856ff8e493fc2"
-      DemoReactActivity.start(this, rnBundle)
+      DemoReactActivity.start(this, "test")
     }
     setContentView(v)
   }

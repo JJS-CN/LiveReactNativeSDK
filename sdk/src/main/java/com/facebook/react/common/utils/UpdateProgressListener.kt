@@ -2,5 +2,5 @@ package com.facebook.react.common.utils
 
 interface UpdateProgressListener {
   fun updateProgressChange(precent: Int)
-  fun complete(success: Boolean)
+  fun complete(success: Boolean, bundleName: String, modelName: String)
 }

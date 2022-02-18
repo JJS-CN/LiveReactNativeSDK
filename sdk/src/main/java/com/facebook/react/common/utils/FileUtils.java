@@ -3,9 +3,12 @@ package com.facebook.react.common.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.facebook.react.common.utils.UpdateProgressListener;
+
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -44,36 +47,77 @@ public class FileUtils {
 
     public static final String BUNDLE_DOWNLOADPATH = "bundle-downloaded";//下载目录
     public static final String RN_NAME = "rnbundle";//临时下载名
+    public static final String RN_CONF_JSON = "conf.json";//远程bundle压缩zip包中包含的文件，存储modelName和bundleName
 
     public static String appendPathComponent(String basePath, String appendPathComponent) {
         return new File(basePath, appendPathComponent).getAbsolutePath();
     }
 
-    public static void downloadRNBundle(final Context context, final String url, final String md5, String scriptPath, final UpdateProgressListener listener) {
+    public static void downloadRNBundle(final Context context, final String url, String pageId, String md5, final UpdateProgressListener listener) {
         final String downloadPath = context.getFilesDir() + File.separator + BUNDLE_DOWNLOADPATH;
         final String fileName = RN_NAME;
-        String bundlePath = getPackageFolderPath(
-                context, md5);
-        String jsBundleFilePath = appendPathComponent(bundlePath, scriptPath);
-        File bundleFile = new File(jsBundleFilePath);
-        if (bundleFile != null && bundleFile.exists()) {
-            System.out.println("认为已有下载内容，直接加载数据");
-            if (listener != null) {
-                listener.complete(true);
-                return;
+
+        try {
+            String bundlePath = getPackageFolderPath(
+                    context, pageId);
+            String rnConfJson = readFileToString(appendPathComponent(bundlePath, RN_CONF_JSON));
+            if (!TextUtils.isEmpty(rnConfJson)) {
+                JSONObject object = new JSONObject(rnConfJson);
+                String modelName = object.getString("modelName");
+                String bundleName = object.getString("bundleName");
+                String oldMd5 = object.getString("md5");
+                if (TextUtils.equals(oldMd5, md5)) {
+                    //相同时，认为正常
+                    if (new File(appendPathComponent(bundlePath, bundleName)).exists()) {
+                        System.out.println("认为已有下载内容，直接加载数据");
+                        if (listener != null) {
+                            listener.complete(true, bundleName, modelName);
+                            return;
+                        }
+                    }
+                } else {
+                    //删除目录下的文件
+                    boolean isDelete = new File(bundlePath).delete();
+                    System.out.println("md5不匹配 delete:" + isDelete);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 boolean result = true;
+                String modelName = "";
+                String bundleName = "";
                 try {
                     boolean tmpRet = FileUtils.downloadFile(url, downloadPath, fileName, listener);
                     if (!tmpRet) {
                         result = false;
                     } else {
                         String filePath = downloadPath + File.separator + fileName;
-                        String successStr = FileUtils.processRnPackage(context, md5, filePath);
+                        //移动解压文件
+                        String successStr = FileUtils.processRnPackage(context, pageId, filePath);
+                        //将cof.json中的modelName和bundleName获取出来，同时将md5添加进去
+                        try {
+                            String bundlePath = getPackageFolderPath(
+                                    context, pageId);
+                            String cofPath = appendPathComponent(bundlePath, RN_CONF_JSON);
+                            String rnConfJson = readFileToString(cofPath);
+                            if (!TextUtils.isEmpty(rnConfJson)) {
+                                JSONObject object = new JSONObject(rnConfJson);
+                                modelName = object.getString("modelName");
+                                bundleName = object.getString("bundleName");
+                                object.put("md5", md5);
+                                String confStr = object.toString();
+                                //将添加了md5的文件进行存储
+                                writeStringToFile(confStr, cofPath);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         if (!"success".equals(successStr)) {
                             result = false;
                         }
@@ -82,7 +126,7 @@ public class FileUtils {
                     result = false;
                 } finally {
                     if (listener != null) {
-                        listener.complete(result);
+                        listener.complete(result, bundleName, modelName);
                     }
                 }
             }
@@ -103,7 +147,7 @@ public class FileUtils {
             File downloadFile = new File(path);
             String newUpdateHash = md5;
             String newUpdateFolderPath = getPackageFolderPath(context, newUpdateHash);
-            String newUpdateMetadataPath = appendPathComponent(newUpdateFolderPath, PACKAGE_FILE_NAME);
+            //String newUpdateMetadataPath = appendPathComponent(newUpdateFolderPath, PACKAGE_FILE_NAME);
             if (fileAtPathExists(newUpdateFolderPath)) {
                 // This removes any stale data in newPackageFolderPath that could have been left
                 // uncleared due to a crash or error during the download or install process.
@@ -116,9 +160,9 @@ public class FileUtils {
 
             FileUtils.copyDirectoryContents(unzippedFolderPath, newUpdateFolderPath);
             FileUtils.deleteFileAtPathSilently(unzippedFolderPath);
-            String relativeBundlePath = newUpdateFolderPath;
-            FileUtils.writeStringToFile(md5, appendPathComponent(getRNCodePath(context), STATUS_FILE));//用该文件判断当前最新版本
-            FileUtils.writeStringToFile(md5, newUpdateMetadataPath);
+            //String relativeBundlePath = newUpdateFolderPath;
+            //FileUtils.writeStringToFile(md5, appendPathComponent(getRNCodePath(context), STATUS_FILE));//用该文件判断当前最新版本
+            //FileUtils.writeStringToFile(md5, newUpdateMetadataPath);
             ret = "success";
         } catch (Exception e) {
             Log.e(TAG, "react native 解压bundle失败");

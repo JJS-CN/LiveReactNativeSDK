@@ -2,6 +2,7 @@ package com.live.react.demo
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.ViewGroup
@@ -22,30 +23,41 @@ import com.facebook.react.common.utils.RnBundle
  */
 open class DemoReactActivity : AsyncReactActivity() {
   companion object {
-    fun start(context: Context, rnBundle: RnBundle) {
-      Log.e("AsyncReactActivity", "start:" + "  bundle:" + rnBundle.toString())
+    var pageIdKey = "pageIdKey"
+    fun start(context: Context, pageId: String) {
+      Log.e("AsyncReactActivity", "start:" + "  pageIdKey:" + pageId)
       val intent = Intent(context, DemoReactActivity::class.java)
-      intent.putExtra(INTENT_KEY_RNBUNDLE, rnBundle)
+      intent.putExtra(pageIdKey, pageId)
       context.startActivity(intent)
     }
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    var rnBundle = RnBundle("", "", "")
+    val pageId = intent.getStringExtra(pageIdKey)
+    rnBundle.md5 = "33333333333"
+    rnBundle.pageId = pageId!!
+    rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=6e114c46eb667d98066da14198d8f36f2"
+
+    startLoadRNBundle(rnBundle)
   }
 
   override fun getAppReactPackages(): List<ReactPackage>? {
     return null
   }
 
+
   override fun getRnLoadConfig(loadConfig: RNLoadingConfig): RNLoadingConfig {
     ((loadConfig.errorView as ViewGroup).getChildAt(1) as ViewGroup).getChildAt(1)
       .setOnClickListener {
-        var rnBundle = RnBundle("", ScriptType.NETWORK, "", "")
+        var rnBundle = RnBundle("", "", "")
 /*      rnBundle.scriptType = ScriptType.ASSET
       rnBundle.scriptPath = "index.android.bundle"
       rnBundle.scriptUrl = "index.android.bundle"*/
         rnBundle.md5 = "33333333333"
-        rnBundle.scriptType = ScriptType.NETWORK
-        rnBundle.moduleName = "app"
-        rnBundle.scriptPath = "index.android.bundle"
-        rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=cc71084a962c84dd4b14856ff8e493fc"
+        rnBundle.pageId = "1"
+        rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=6e114c46eb667d98066da14198d8f36f"
         reload(rnBundle)
       }
     return loadConfig
