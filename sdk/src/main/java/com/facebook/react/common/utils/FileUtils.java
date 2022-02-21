@@ -1,12 +1,10 @@
 package com.facebook.react.common.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.facebook.react.common.utils.UpdateProgressListener;
 
 import org.json.JSONObject;
 
@@ -23,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,22 +29,15 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class FileUtils {
-    public static final String PACKAGE_FILE_NAME = "app.json";
-    public static final String PACKAGE_HASH_KEY = "md5";
     public static final String UNZIPPED_FOLDER_NAME = "unzipped";
     public static final String FOLDER_RN = "bundles";//目标目录
-    public static final String REACT_NATIVE_FILE = "index.android.bundle";
-
-    public static final String STATUS_FILE = "code_rn.json";
-
     public static final int DOWNLOAD_BUFFER_SIZE = 1024 * 256;
     private static final int WRITE_BUFFER_SIZE = 1024 * 8;
-    private static WeakReference<Activity> rnActivityRef;
     private static final String TAG = "FileUtils";
 
     public static final String BUNDLE_DOWNLOADPATH = "bundle-downloaded";//下载目录
     public static final String RN_NAME = "rnbundle";//临时下载名
-    public static final String RN_CONF_JSON = "conf.json";//远程bundle压缩zip包中包含的文件，存储modelName和bundleName
+    public static final String RN_CONF_JSON = "config.json";//远程bundle压缩zip包中包含的文件，存储modelName和bundleName
 
     public static String appendPathComponent(String basePath, String appendPathComponent) {
         return new File(basePath, appendPathComponent).getAbsolutePath();
