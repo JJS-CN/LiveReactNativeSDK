@@ -1,5 +1,6 @@
 package com.facebook.react
 
+import android.app.Application
 import com.facebook.react.common.utils.ScriptLoadUtil.getCatalystInstance
 import com.facebook.react.common.utils.ScriptLoadUtil.setJsBundleAssetPath
 import com.facebook.react.common.utils.ScriptLoadUtil.loadScriptFromAsset
@@ -52,6 +53,44 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   companion object {
     // TODO: 2022/2/9 对象未释放？
     private var mReactNativeHost: ReactNativeHost? = null
+
+    private fun createNativeHost(application: Application,
+                                 appReactPackages: List<ReactPackage>?): ReactNativeHost {
+      if(mReactNativeHost == null) {
+        mReactNativeHost = object : ReactNativeHost(application) {
+          override fun getUseDeveloperSupport(): Boolean {
+            return ScriptLoadUtil.MULTI_DEBUG //是否是debug模式
+          }
+
+          override fun getPackages(): List<ReactPackage> {
+            val packages = ArrayList<ReactPackage>()
+            packages.add(MainReactPackage())
+            packages.add(RNDeviceInfo())
+            packages.add(RNGestureHandlerPackage())
+            packages.add(ReanimatedPackage())
+            packages.add(LinearGradientPackage())
+            packages.add(RNSmartassetsPackage())
+            packages.add(RNScreensPackage())
+            packages.add(SafeAreaContextPackage())
+            packages.add(SvgPackage())
+            packages.add(VectorIconsPackage())
+            if(appReactPackages != null) {
+              packages.addAll(appReactPackages)
+            }
+            return packages
+          }
+
+          override fun getBundleAssetName(): String {
+            return "platform.android.bundle"
+          }
+
+          override fun getJSMainModuleName(): String {
+            return "MultiDebugEntry"
+          }
+        }
+      }
+      return mReactNativeHost!!
+    }
   }
 
   /* public static void start(Context context, String componentName, RnBundle rnBundle) {
@@ -124,42 +163,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   protected fun createReactActivityDelegate(): ReactActivityDelegate {
     return object : ReactActivityDelegate(this, mainComponentNameInner) {
       override fun getReactNativeHost(): ReactNativeHost {
-        if(mReactNativeHost == null) {
-          mReactNativeHost = object : ReactNativeHost(this@AsyncReactActivity.application) {
-            override fun getUseDeveloperSupport(): Boolean {
-              return ScriptLoadUtil.MULTI_DEBUG //是否是debug模式
-            }
-
-            override fun getPackages(): List<ReactPackage> {
-              // TODO: 2022/2/22 报错？没引用的资源？？？
-              val packages = ArrayList<ReactPackage>()
-              packages.add(MainReactPackage())
-              packages.add(RNDeviceInfo())
-              packages.add(RNGestureHandlerPackage())
-              packages.add(ReanimatedPackage())
-              packages.add(LinearGradientPackage())
-              packages.add(RNSmartassetsPackage())
-              packages.add(RNScreensPackage())
-              packages.add(SafeAreaContextPackage())
-              packages.add(SvgPackage())
-              packages.add(VectorIconsPackage())
-              val appReactPackages = getAppReactPackages()
-              if(appReactPackages != null) {
-                packages.addAll(appReactPackages)
-              }
-              return packages
-            }
-
-            override fun getBundleAssetName(): String {
-              return "platform.android.bundle"
-            }
-
-            override fun getJSMainModuleName(): String {
-              return "MultiDebugEntry"
-            }
-          }
-        }
-        return mReactNativeHost!!
+        return createNativeHost(this@AsyncReactActivity.application, getAppReactPackages())
       }
     }
   }
@@ -356,10 +360,10 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   override fun onPause() {
     super.onPause()
-  /*  try {
-      mDelegate.onPause()
-    } catch(e: Exception) {
-    }*/
+    /*  try {
+        mDelegate.onPause()
+      } catch(e: Exception) {
+      }*/
   }
 
   override fun onResume() {
@@ -390,7 +394,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     try {
       return mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     } catch(e: Exception) {
-      return  super.onKeyDown(keyCode, event)
+      return super.onKeyDown(keyCode, event)
     }
   }
 
