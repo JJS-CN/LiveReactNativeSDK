@@ -42,7 +42,6 @@ android {
 
 
 dependencies {
-    implementation project(path: ':react-native-smartassets')
     //api fileTree(include: ['*.jar'], dir: 'libs')
     /*embed project(path: ':ReactNative_aar', configuration: 'default')
     embed project(path: ':jsc_aar', configuration: 'default')

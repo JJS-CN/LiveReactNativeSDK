@@ -36,15 +36,18 @@ open class DemoReactActivity : AsyncReactActivity() {
     super.onCreate(savedInstanceState)
     var rnBundle = RnBundle("", "", "")
     val pageId = intent.getStringExtra(pageIdKey)
-    rnBundle.md5 = "33333333333"
+    rnBundle.md5 = "233333333334"
     rnBundle.pageId = pageId!!
-    rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=6e114c46eb667d98066da14198d8f36f2"
+    rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=ac89b7f78e63dd6b7c7ebdb70e7888cf"
 
     startLoadRNBundle(rnBundle)
   }
 
   override fun getAppReactPackages(): List<ReactPackage>? {
-    return null
+    val list = ArrayList<ReactPackage>()
+    Log.e("DemoReactActivity", "getAppReactPackages")
+    list.add(BaseConfigPackage())
+    return list
   }
 
 

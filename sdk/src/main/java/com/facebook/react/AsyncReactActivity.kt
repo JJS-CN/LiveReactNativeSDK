@@ -5,7 +5,6 @@ import com.facebook.react.common.utils.ScriptLoadUtil.setJsBundleAssetPath
 import com.facebook.react.common.utils.ScriptLoadUtil.loadScriptFromAsset
 import com.facebook.react.common.utils.ScriptLoadUtil.loadScriptFromFile
 import com.facebook.react.common.utils.FileUtils.downloadRNBundle
-import com.facebook.react.common.utils.FileUtils.getCurrentPackageMd5
 import com.facebook.react.common.utils.FileUtils.getPackageFolderPath
 import com.facebook.react.common.utils.FileUtils.appendPathComponent
 import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler
@@ -132,6 +131,7 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
             }
 
             override fun getPackages(): List<ReactPackage> {
+              // TODO: 2022/2/22 报错？没引用的资源？？？
               val packages = ArrayList<ReactPackage>()
               packages.add(MainReactPackage())
               packages.add(RNDeviceInfo())
@@ -351,30 +351,47 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   protected fun initView() {
     mDelegate.onCreate(null)
+    mDelegate.onResume()
   }
 
   override fun onPause() {
     super.onPause()
-    //mDelegate.onPause();
+  /*  try {
+      mDelegate.onPause()
+    } catch(e: Exception) {
+    }*/
   }
 
   override fun onResume() {
     super.onResume()
-    //mDelegate.onResume();
+    try {
+      mDelegate.onResume()
+    } catch(e: Exception) {
+    }
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    mDelegate.onDestroy()
+    try {
+      mDelegate.onDestroy()
+    } catch(e: Exception) {
+    }
   }
 
   public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
-    mDelegate.onActivityResult(requestCode, resultCode, data)
+    try {
+      mDelegate.onActivityResult(requestCode, resultCode, data)
+    } catch(e: Exception) {
+    }
   }
 
   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    try {
+      return mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    } catch(e: Exception) {
+      return  super.onKeyDown(keyCode, event)
+    }
   }
 
   override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
@@ -386,7 +403,12 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   override fun onBackPressed() {
-    super.onBackPressed()
+    try {
+      mDelegate.onBackPressed()
+    } catch(e: Exception) {
+      super.onBackPressed()
+    }
+
   }
 
   override fun invokeDefaultOnBackPressed() {
