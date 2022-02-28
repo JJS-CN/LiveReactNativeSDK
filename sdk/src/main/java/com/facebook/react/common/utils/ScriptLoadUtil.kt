@@ -2,14 +2,10 @@ package com.facebook.react.common.utils
 
 import android.content.Context
 import android.util.Log
-import com.facebook.react.common.ReactUtil.getSourceUrl
-import com.facebook.react.common.bridge.BridgeUtil.loadScriptFromAsset
-import com.facebook.react.common.bridge.BridgeUtil.loadScriptFromFile
 import com.facebook.react.ReactInstanceManager
 import com.facebook.react.ReactRootView
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.bridge.CatalystInstance
-import com.facebook.react.common.utils.ScriptLoadUtil
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.common.ReactUtil

@@ -9,12 +9,15 @@ import java.io.Serializable
 open class RnBundle : Serializable {
   //var scriptPath: String? = null
   var scriptType: ScriptType = ScriptType.NETWORK
+
   //当从ASSETS中加载时，这个作为存储bundleName的字段
   var scriptUrl: String? = null
 
   var moduleName: String = ""
   var pageId: String = ""
   var md5: String = ""
+  //初始化参数
+  var params: String? = ""
 
   constructor()
   constructor(pageId: String, scriptUrl: String?, md5: String) {

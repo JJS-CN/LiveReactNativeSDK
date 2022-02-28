@@ -1,5 +1,6 @@
 package com.live.react.demo
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
@@ -25,6 +26,7 @@ class LauncherActivity : AppCompatActivity() {
     v.setPadding(10)
     v.setOnClickListener {
       DemoReactActivity.start(this, "test")
+      //startActivity(Intent(this, TestReactActivity::class.java))
     }
     setContentView(v)
   }

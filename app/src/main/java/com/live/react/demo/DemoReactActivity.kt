@@ -36,10 +36,10 @@ open class DemoReactActivity : AsyncReactActivity() {
     super.onCreate(savedInstanceState)
     var rnBundle = RnBundle("", "", "")
     val pageId = intent.getStringExtra(pageIdKey)
-    rnBundle.md5 = "233333333334"
+    rnBundle.md5 = "2"
     rnBundle.pageId = pageId!!
-    rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=ac89b7f78e63dd6b7c7ebdb70e7888cf"
-
+    rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=0f4d9c0606581d16aaaee0ad51aebd4f"
+    rnBundle.params = "{\"testKey\":\"testValue\",\"testkey\":\"testValuessss\"}"
     startLoadRNBundle(rnBundle)
   }
 
@@ -54,14 +54,11 @@ open class DemoReactActivity : AsyncReactActivity() {
   override fun getRnLoadConfig(loadConfig: RNLoadingConfig): RNLoadingConfig {
     ((loadConfig.errorView as ViewGroup).getChildAt(1) as ViewGroup).getChildAt(1)
       .setOnClickListener {
-        var rnBundle = RnBundle("", "", "")
-/*      rnBundle.scriptType = ScriptType.ASSET
-      rnBundle.scriptPath = "index.android.bundle"
-      rnBundle.scriptUrl = "index.android.bundle"*/
-        rnBundle.md5 = "33333333333"
+    /*    var rnBundle = RnBundle("", "", "")
+        rnBundle.md5 = "333334"
         rnBundle.pageId = "1"
-        rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=6e114c46eb667d98066da14198d8f36f"
-        reload(rnBundle)
+        rnBundle.scriptUrl = "http://dl1.yuntuds.cn/download?key=0f4d9c0606581d16aaaee0ad51aebd4f"
+        reload(rnBundle)*/
       }
     return loadConfig
   }
