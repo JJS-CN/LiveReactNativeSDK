@@ -23,6 +23,8 @@ include ':react-native-screens'
 project(':react-native-screens').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-screens/android')
 include ':react-native-svg'
 project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-svg/android')
+include ':react-native-fast-image'
+project(':react-native-fast-image').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-fast-image/android')
 
 
 

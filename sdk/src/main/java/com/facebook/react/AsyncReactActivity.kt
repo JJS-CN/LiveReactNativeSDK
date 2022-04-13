@@ -300,8 +300,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   protected fun initView() {
-    mDelegate.onCreate(null)
-    mDelegate.onResume()
+    try {
+      mDelegate.onCreate(null)
+      mDelegate.onResume()
+    } catch(e: Exception) {
+    }
   }
 
   override fun onPause() {
@@ -337,19 +340,27 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-    try {
-      return mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    return try {
+      mDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     } catch(e: Exception) {
-      return super.onKeyDown(keyCode, event)
+      super.onKeyDown(keyCode, event)
     }
   }
 
   override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate.onKeyUp(keyCode, event) || super.onKeyUp(keyCode, event)
+    return try {
+      mDelegate.onKeyUp(keyCode, event) || super.onKeyUp(keyCode, event)
+    } catch(e: Exception) {
+      super.onKeyUp(keyCode, event)
+    }
   }
 
   override fun onKeyLongPress(keyCode: Int, event: KeyEvent): Boolean {
-    return mDelegate.onKeyLongPress(keyCode, event) || super.onKeyLongPress(keyCode, event)
+    return try {
+      mDelegate.onKeyLongPress(keyCode, event) || super.onKeyLongPress(keyCode, event)
+    } catch(e: Exception) {
+      super.onKeyLongPress(keyCode, event)
+    }
   }
 
   override fun onBackPressed() {
@@ -366,7 +377,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
   }
 
   public override fun onNewIntent(intent: Intent) {
-    if(!mDelegate.onNewIntent(intent)) {
+    try {
+      if(!mDelegate.onNewIntent(intent)) {
+        super.onNewIntent(intent)
+      }
+    } catch(e: Exception) {
       super.onNewIntent(intent)
     }
   }
@@ -375,7 +390,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     permissions: Array<String>,
     requestCode: Int,
     listener: PermissionListener) {
-    mDelegate.requestPermissions(permissions, requestCode, listener)
+    try {
+      mDelegate.requestPermissions(permissions, requestCode, listener)
+    } catch(e: Exception) {
+
+    }
   }
 
   override fun onRequestPermissionsResult(
@@ -383,7 +402,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
     permissions: Array<String>,
     grantResults: IntArray) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    mDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    try {
+      mDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    } catch(e: Exception) {
+
+    }
   }
 
   protected val reactNativeHost: ReactNativeHost

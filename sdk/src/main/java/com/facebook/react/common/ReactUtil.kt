@@ -2,6 +2,7 @@ package com.facebook.react.common
 
 import android.app.Application
 import com.BV.LinearGradient.LinearGradientPackage
+import com.dylanvann.fastimage.FastImageViewPackage
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.CatalystInstance
@@ -41,6 +42,7 @@ object ReactUtil {
           packages.add(RNScreensPackage())
           packages.add(SafeAreaContextPackage())
           packages.add(SvgPackage())
+          packages.add(FastImageViewPackage())
           if(appReactPackages != null) {
             packages.addAll(appReactPackages)
           }
