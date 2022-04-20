@@ -93,6 +93,7 @@ dependencies {
     embed project(':react-native-screens')
     embed project(':react-native-svg')
     embed project(':react-native-fast-image')
+    embed project(':react-native-color-matrix-image-filters')
     implementation 'com.facebook.infer.annotation:infer-annotation:0.11.2'
     implementation('androidx.appcompat:appcompat:1.2.0')
     implementation 'com.facebook.fresco:fresco:2.0.0'

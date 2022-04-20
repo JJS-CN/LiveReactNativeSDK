@@ -15,6 +15,7 @@ import com.swmansion.gesturehandler.react.RNGestureHandlerPackage
 import com.swmansion.reanimated.ReanimatedPackage
 import com.swmansion.rnscreens.RNScreensPackage
 import com.th3rdwave.safeareacontext.SafeAreaContextPackage
+import iyegoroff.RNColorMatrixImageFilters.ColorMatrixImageFiltersPackage
 import java.util.ArrayList
 
 object ReactUtil {
@@ -43,6 +44,7 @@ object ReactUtil {
           packages.add(SafeAreaContextPackage())
           packages.add(SvgPackage())
           packages.add(FastImageViewPackage())
+          packages.add(ColorMatrixImageFiltersPackage())
           if(appReactPackages != null) {
             packages.addAll(appReactPackages)
           }

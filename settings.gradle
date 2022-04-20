@@ -25,6 +25,8 @@ include ':react-native-svg'
 project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-svg/android')
 include ':react-native-fast-image'
 project(':react-native-fast-image').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-fast-image/android')
+include ':react-native-color-matrix-image-filters'
+project(':react-native-color-matrix-image-filters').projectDir = new File(rootProject.projectDir, '../RNModule/node_modules/react-native-color-matrix-image-filters/android')
 
 
 
