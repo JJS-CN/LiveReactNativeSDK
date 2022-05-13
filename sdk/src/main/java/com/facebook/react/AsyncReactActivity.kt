@@ -22,6 +22,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import com.facebook.react.modules.core.PermissionListener
 import com.facebook.react.common.LoadScriptListener
 import com.facebook.react.common.RNLoadingConfig
@@ -309,10 +310,11 @@ open abstract class AsyncReactActivity : AppCompatActivity(), DefaultHardwareBac
 
   override fun onPause() {
     super.onPause()
-    /*  try {
+      try {
+        //不调用会有back内存泄漏问题
         mDelegate.onPause()
       } catch(e: Exception) {
-      }*/
+      }
   }
 
   override fun onResume() {
